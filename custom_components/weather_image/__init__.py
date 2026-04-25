@@ -2,26 +2,23 @@
 
 from __future__ import annotations
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.typing import ConfigType
 
 from .const import DOMAIN, SERVICE_GENERATE
 
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+async def async_setup(hass: HomeAssistant, config) -> bool:
     """Set up the Weather Image integration."""
-    await _async_register_services(hass)
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
     """Set up Weather Image from a config entry."""
     await _async_register_services(hass)
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry) -> bool:
     """Unload a Weather Image config entry."""
     return True
 
@@ -31,11 +28,7 @@ async def _async_register_services(hass: HomeAssistant) -> None:
     if hass.services.has_service(DOMAIN, SERVICE_GENERATE):
         return
 
-    from .service import GENERATE_SERVICE_SCHEMA, async_handle_generate
-
-    register_kwargs = {
-        "schema": GENERATE_SERVICE_SCHEMA,
-    }
+    register_kwargs = {}
     try:
         from homeassistant.core import SupportsResponse
 
@@ -44,6 +37,8 @@ async def _async_register_services(hass: HomeAssistant) -> None:
         pass
 
     async def handle_generate(call):
+        from .service import async_handle_generate
+
         return await async_handle_generate(hass, call)
 
     hass.services.async_register(

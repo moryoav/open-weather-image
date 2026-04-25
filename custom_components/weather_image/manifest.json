@@ -1,7 +1,7 @@
 {
   "domain": "weather_image",
   "name": "Weather Image",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "documentation": "https://github.com/moryoav/open-weather-image",
   "issue_tracker": "https://github.com/moryoav/open-weather-image/issues",
   "codeowners": [],

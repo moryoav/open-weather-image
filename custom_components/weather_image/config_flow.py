@@ -14,9 +14,6 @@ class WeatherImageConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input: dict | None = None):
         """Set up the integration from the Home Assistant UI."""
-        await self.async_set_unique_id(DOMAIN)
-        self._abort_if_unique_id_configured(reason="already_configured")
-
         return self.async_create_entry(
             title="Weather Image",
             data={},

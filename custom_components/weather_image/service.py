@@ -10,7 +10,7 @@ from typing import Any
 
 import voluptuous as vol
 
-from homeassistant.core import HomeAssistant, ServiceCall, ServiceResponse, State
+from homeassistant.core import HomeAssistant, ServiceCall, State
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.util import dt as dt_util
@@ -76,7 +76,7 @@ class _PreparedForecast:
 async def async_handle_generate(
     hass: HomeAssistant,
     call: ServiceCall,
-) -> ServiceResponse | None:
+):
     """Generate the weather image and save it under /config/www."""
     from .renderer import save_weather_image
 
