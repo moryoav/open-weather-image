@@ -1,0 +1,11 @@
+{
+  "domain": "weather_image",
+  "name": "Weather Image",
+  "version": "1.0.0",
+  "documentation": "https://github.com/moryoav/open-weather-image",
+  "issue_tracker": "https://github.com/moryoav/open-weather-image/issues",
+  "codeowners": [],
+  "integration_type": "service",
+  "iot_class": "calculated",
+  "requirements": ["Pillow>=10.0.0,<13.0.0"]
+}

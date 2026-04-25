@@ -1,229 +1,81 @@
-﻿# open-weather-image
+# Weather Image
 
-open-weather-image is a image creation (base64 or buffer (png format)) to show current weather data of a provided area
+`weather_image` is now a Home Assistant custom integration that renders a weather PNG in the visual style of the original `open-weather-image` package.
 
-Forecast data is loaded from [OpenWeather API](https://openweathermap.org)
+It exposes a single service, `weather_image.generate`, which:
 
-The theme changes if it's daytime or nighttime as shown below
+- reads the current conditions from a Home Assistant weather entity such as `weather.openweathermap`
+- fetches forecast data through `weather.get_forecasts`
+- renders a PNG using Python + Pillow and the bundled weather icon font
+- saves the result under `/config/www/...` so it is immediately available through `/local/...`
 
-![Daytime](https://github.com/Kira-Kitsune/open-weather-image/blob/main/daytime.png?raw=true)
+The renderer keeps the legacy layout as closely as possible:
 
-![Nighttime](https://github.com/Kira-Kitsune/open-weather-image/blob/main/nighttime.png?raw=true)
+- `520px` wide card
+- split two-tone day/night header
+- oversized right-hand weather glyph
+- large temperature block on the left
+- four forecast boxes across the bottom rail
 
-Or alternatively you can include it with a forecast
+## Installation
 
-![WithForecast](https://github.com/Kira-Kitsune/open-weather-image/blob/main/withforecast.png?raw=true)
+1. Copy `custom_components/weather_image` into your Home Assistant `custom_components` directory.
+   The final destination should be:
 
-Optionally if you don't like the default colours, you can customise the theme (Only with solid colours, all arguments are optional, gradients will be added in future version)
+```text
+<config>/custom_components/weather_image
+```
+2. Add this to `configuration.yaml`:
 
-# Installation
-
-npm:
-```sh
-npm install open-weather-image
+```yaml
+weather_image:
 ```
 
-bun:
-```sh
-bun add open-weather-image
+3. Restart Home Assistant.
+
+## Service
+
+Service: `weather_image.generate`
+
+Fields:
+
+- `entity_id`: Weather entity to render, typically `weather.openweathermap`
+- `forecast_type`: `daily` or `hourly`
+- `title`: Optional title override
+- `output_file`: Optional output path inside `/config/www`, defaults to `/config/www/weather/latest.png`
+
+Example:
+
+```yaml
+action: weather_image.generate
+data:
+  entity_id: weather.openweathermap
+  forecast_type: daily
+  title: Home Forecast
+  output_file: /config/www/weather/latest.png
 ```
 
-# Usage
+After the service runs, the default image is available at:
 
-First you will need to register and account on OpenWeather to obtain an API key
-
-Recommended to put your API key as an environment variable.
-
-[How to Start OpenWeather](https://openweathermap.org/appid)
-
-### Basic Usage
-> You can output with a buffer or base64 string. `Default: "buffer"`
-
-Base 64:
-```ts
-import { createWeatherImage } from 'open-weather-image';
-
-const image = await createWeatherImageToday({
-    key: process.env.WEATHER_API_KEY,
-    cityName: 'Munich',
-    output: 'base64',
-});
+```text
+/local/weather/latest.png
 ```
 
-Buffer:
-```ts
-import { createWeatherImage } from 'open-weather-image';
+## Notes
 
-const image = await createWeatherImageToday({
-    key: process.env.WEATHER_API_KEY,
-    cityName: 'Munich',
-    output: 'buffer',
-});
-```
+- The service always writes PNG files and only allows output paths under `/config/www`.
+- Daily mode renders the next four forecast days.
+- Hourly mode renders the next four upcoming forecast points.
+- The current weather panel uses the selected weather entity's live state attributes.
+- The lower-right detail area prefers sunrise/sunset values when the forecast payload includes them, and otherwise falls back to pressure and visibility.
 
+## Repository Layout
 
+- `custom_components/weather_image/__init__.py`: service registration
+- `custom_components/weather_image/service.py`: Home Assistant data collection and normalization
+- `custom_components/weather_image/renderer.py`: Pillow renderer
+- `custom_components/weather_image/weathericons-font.ttf`: bundled icon font used for the card glyphs
 
-### With Metric Units
+## License
 
-```ts
-import { createWeatherImage } from 'open-weather-image';
-
-const image = await createWeatherImageToday({
-    key: process.env.WEATHER_API_KEY,
-    cityName: 'Munich',
-    units: 'metric',
-});
-```
-
-### With Imperial Units
-
-![Imperial](https://github.com/Kira-Kitsune/open-weather-image/blob/main/imperial.png?raw=true)
-
-> Omitting the `units` property will use the preferred temperature unit of the target country.
-
-```ts
-import { createWeatherImage } from 'open-weather-image';
-
-const image = await createWeatherImageToday({
-    key: process.env.WEATHER_API_KEY,
-    cityName: 'Springfield',
-    stateCode: 'OR',
-    countryCode: 'US',
-    units: 'imperial',
-});
-```
-
-### With Forecast
-
-![WithForecast](https://github.com/Kira-Kitsune/open-weather-image/blob/main/withforecast.png?raw=true)
-
-```ts
-import { createWeatherImage } from 'open-weather-image';
-
-const image = await createWeatherImage({
-    key: process.env.WEATHER_API_KEY,
-    cityName: 'Munich',
-    withForecast: true,
-});
-```
-
-### Choosing a Locale
-
-> Currently only English and German is supported, and tested with, feel free to [contribute](#contributing) with other langauges within the [i18n.ts](./src/utils/i18n.ts) file. `Default: "en"`
-
-![ChangingLocale](https://github.com/Kira-Kitsune/open-weather-image/blob/main/localeDE.png?raw=true)
-
-```ts
-import { createWeatherImage } from "open-weather-image"
-
-const image = await createWeatherImage({
-    key: process.env.WEATHER_API_KEY,
-    cityName: 'Munich',
-    withForecast: true,
-    locale: "de",
-});
-```
-
-#### Possible Locales (All the ones that don't have full support are disabled)
-    af - Afrikaans
-    al - Albanian
-    ar - Arabic
-    az - Azerbaijani
-    bg - Bulgarian
-    ca - Catalan
-    cz - Czech
-    da - Danish
-    de - German (Full Support)
-    el - Greek
-    en - English (Full Support)
-    eu - Basque
-    fa - Persian (Farsi)
-    fi - Finnish
-    fr - French
-    gl - Galician
-    he - Hebrew
-    hi - Hindi
-    hr - Croatian
-    hu - Hungarian
-    id - Indonesian
-    it - Italian
-    ja - Japanese
-    kr - Korean
-    la - Latvian
-    lt - Lithuanian
-    mk - Macedonian
-    no - Norwegian
-    nl - Dutch
-    pl - Polish
-    pt - Portuguese
-    pt_br - Português Brasil
-    ro - Romanian
-    ru - Russian
-    sv, se - Swedish
-    sk - Slovak
-    sl - Slovenian
-    sp, es - Spanish
-    sr - Serbian
-    th - Thai
-    tr - Turkish
-    ua, uk - Ukrainian
-    vi - Vietnamese
-    zh_cn - Chinese Simplified
-    zh_tw - Chinese Traditional
-    zu - Zulu
-
-### With a Theme
-![WithTheme](https://github.com/Kira-Kitsune/open-weather-image/blob/main/withtheme.png?raw=true)
-
-```ts
-import { createWeatherImage } from 'open-weather-image';
-
-const myTheme = {
-    dayThemeRight: '#373CC4',
-    forecastBgTheme: '#242424',
-    forecastBoxDivider: '#FFFFFF',
-    dayThemeText: '#FF00FF',
-    dayThemeSymbol: '#00FF00',
-};
-
-const image = await createWeatherImage({
-    key: process.env.WEATHER_API_KEY,
-    cityName: 'Munich',
-    withForecast: true,
-    theme: myTheme,
-});
-```
-
-Importing the theme type in TypeScript
-```ts
-import type { Theme } from 'open-weather-image';
-```
-
-Default Theme
-```ts
-const defaultTheme = {
-    dayThemeLeft: '#FFD982',
-    dayThemeRight: '#5ECEF6',
-    dayThemeText: 'black', // #000000
-    dayThemeSymbol: 'black',
-    nightThemeLeft: '#25395C',
-    nightThemeRight: '#1C2A4F',
-    nightThemeText: 'white', // #FFFFFF
-    nightThemeSymbol: 'white',
-    forecastBgTheme: '#DDDDDD',
-    forecastBoxTheme: '#EEEEEE',
-    forecastText: 'black',
-    forecastSymbolColour: 'black',
-    forecastBoxDivider: 'black',
-};
-```
-
-# Contributing
-Before creating an issue, please ensure that it hasn't already been reported/suggested.
-
-You are free to submit a PR to this repo, please fork first, please only communicate in English or German.
-
-# License
-open-weather-image is available under the MIT license. See the LICENSE.md file for more info.
-
-Copyright &copy; 2022-2024 Kira Kitsune <https://kirakitsune.com>, All rights reserved.
+This repository remains under the MIT license. See `LICENSE.md`.

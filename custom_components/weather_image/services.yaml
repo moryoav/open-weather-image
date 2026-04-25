@@ -1,0 +1,25 @@
+generate:
+  fields:
+    entity_id:
+      required: true
+      example: weather.openweathermap
+      selector:
+        entity:
+          domain: weather
+    forecast_type:
+      default: daily
+      selector:
+        select:
+          options:
+            - label: Daily
+              value: daily
+            - label: Hourly
+              value: hourly
+    title:
+      example: Home Forecast
+      selector:
+        text:
+    output_file:
+      example: /config/www/weather/latest.png
+      selector:
+        text:

@@ -2,3 +2,7 @@ node_modules
 /dist
 test.ts
 .env
+__pycache__/
+*.pyc
+.codex_tmp_pillow/
+preview-render.png

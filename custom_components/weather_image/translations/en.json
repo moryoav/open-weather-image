@@ -1,0 +1,27 @@
+{
+  "title": "Weather Image",
+  "services": {
+    "generate": {
+      "name": "Generate weather image",
+      "description": "Render a PNG weather infographic using a Home Assistant weather entity and the weather.get_forecasts action.",
+      "fields": {
+        "entity_id": {
+          "name": "Weather entity",
+          "description": "The weather entity to render, for example weather.openweathermap."
+        },
+        "forecast_type": {
+          "name": "Forecast type",
+          "description": "Choose whether the bottom forecast rail uses daily or hourly forecast data."
+        },
+        "title": {
+          "name": "Title",
+          "description": "Optional title shown in the top-left of the card. When omitted, the entity name is used."
+        },
+        "output_file": {
+          "name": "Output file",
+          "description": "PNG output path inside /config/www. The default is /config/www/weather/latest.png."
+        }
+      }
+    }
+  }
+}
