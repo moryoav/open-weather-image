@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from homeassistant.core import HomeAssistant, SupportsResponse
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 
 from .const import DOMAIN, SERVICE_GENERATE
-from .service import GENERATE_SERVICE_SCHEMA, async_handle_generate
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -32,6 +31,18 @@ async def _async_register_services(hass: HomeAssistant) -> None:
     if hass.services.has_service(DOMAIN, SERVICE_GENERATE):
         return
 
+    from .service import GENERATE_SERVICE_SCHEMA, async_handle_generate
+
+    register_kwargs = {
+        "schema": GENERATE_SERVICE_SCHEMA,
+    }
+    try:
+        from homeassistant.core import SupportsResponse
+
+        register_kwargs["supports_response"] = SupportsResponse.OPTIONAL
+    except ImportError:
+        pass
+
     async def handle_generate(call):
         return await async_handle_generate(hass, call)
 
@@ -39,6 +50,5 @@ async def _async_register_services(hass: HomeAssistant) -> None:
         DOMAIN,
         SERVICE_GENERATE,
         handle_generate,
-        schema=GENERATE_SERVICE_SCHEMA,
-        supports_response=SupportsResponse.OPTIONAL,
+        **register_kwargs,
     )
