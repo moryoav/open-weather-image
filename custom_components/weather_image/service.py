@@ -31,7 +31,9 @@ from .const import (
     WEATHER_GET_FORECASTS_SERVICE,
 )
 from .models import ForecastItem, SideMetric, WeatherImagePayload
-from .renderer import SUNRISE_GLYPH, SUNSET_GLYPH, save_weather_image
+
+SUNRISE_GLYPH = "\uf051"
+SUNSET_GLYPH = "\uf052"
 
 GENERATE_SERVICE_SCHEMA = vol.Schema(
     {
@@ -76,6 +78,8 @@ async def async_handle_generate(
     call: ServiceCall,
 ) -> ServiceResponse | None:
     """Generate the weather image and save it under /config/www."""
+    from .renderer import save_weather_image
+
     entity_id = call.data[ATTR_ENTITY_ID]
     forecast_type = call.data[ATTR_FORECAST_TYPE]
     output_path = _resolve_output_path(hass, call.data[ATTR_OUTPUT_FILE])
