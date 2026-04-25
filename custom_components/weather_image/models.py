@@ -29,7 +29,8 @@ class ForecastItem:
 class WeatherImagePayload:
     """Normalized weather data ready for the Pillow renderer."""
 
-    title: str
+    header_title: str | None
+    location_text: str
     subtitle: str
     current_temperature: str
     feels_like: str | None

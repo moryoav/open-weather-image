@@ -97,18 +97,54 @@ def _draw_current_panel(
     left_pos = 22
     right_panel_center = left_width + (CANVAS_WIDTH - left_width) / 2
 
-    title_font = _fit_text_font(draw, payload.title, left_width - left_pos - 22, 38)
+    eyebrow_font = _load_text_font(13)
+    location_font = _fit_text_font(
+        draw,
+        payload.location_text,
+        left_width - left_pos - 22,
+        38 if payload.header_title is None else 32,
+        minimum=20,
+        bold=True,
+    )
     subtitle_font = _load_text_font(16)
-    temp_font = _load_text_font(44)
+    temp_font = _load_text_font(44, bold=True)
     body_font = _load_text_font(16)
     small_font = _load_text_font(12)
     icon_font = _load_icon_font(20)
     large_icon_font = _load_icon_font(82)
 
-    draw.text((left_pos, 62), payload.title, font=title_font, fill=text_color, anchor="ls")
-    draw.text((left_pos, 88), payload.subtitle, font=subtitle_font, fill=text_color, anchor="ls")
+    divider_y = 100
+    if payload.header_title:
+        eyebrow_color = _with_alpha(text_color, 190)
+        draw.text(
+            (left_pos, 30),
+            payload.header_title,
+            font=eyebrow_font,
+            fill=eyebrow_color,
+            anchor="ls",
+        )
+        location_y = 62
+        subtitle_y = 88
+    else:
+        location_y = 62
+        subtitle_y = 88
 
-    draw.line((15, 100, 304, 100), fill=line_color, width=1)
+    draw.text(
+        (left_pos, location_y),
+        payload.location_text,
+        font=location_font,
+        fill=text_color,
+        anchor="ls",
+    )
+    draw.text(
+        (left_pos, subtitle_y),
+        payload.subtitle,
+        font=subtitle_font,
+        fill=text_color,
+        anchor="ls",
+    )
+
+    draw.line((15, divider_y, 304, divider_y), fill=line_color, width=1)
     draw.line((15, 200, 304, 200), fill=line_color, width=1)
 
     draw.text(
@@ -274,14 +310,15 @@ def _fit_text_font(
     max_width: float,
     start_size: int,
     minimum: int = 12,
+    bold: bool = False,
 ) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     font_size = start_size
     while font_size >= minimum:
-        font = _load_text_font(font_size)
+        font = _load_text_font(font_size, bold=bold)
         if _text_width(draw, text, font) <= max_width:
             return font
         font_size -= 2
-    return _load_text_font(minimum)
+    return _load_text_font(minimum, bold=bold)
 
 
 def _trim_text(
@@ -309,22 +346,37 @@ def _text_width(
     return bbox[2] - bbox[0]
 
 
-def _load_text_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+def _load_text_font(
+    size: int,
+    bold: bool = False,
+) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     candidates = (
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-        "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf",
-        "C:/Windows/Fonts/arial.ttf",
-        "C:/Windows/Fonts/segoeui.ttf",
-        "DejaVuSans.ttf",
-        "Arial.ttf",
-        "arial.ttf",
+        (
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+            "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf",
+            "C:/Windows/Fonts/arialbd.ttf",
+            "C:/Windows/Fonts/segoeuib.ttf",
+            "DejaVuSans-Bold.ttf",
+            "Arial Bold.ttf",
+            "arialbd.ttf",
+        )
+        if bold
+        else (
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf",
+            "C:/Windows/Fonts/arial.ttf",
+            "C:/Windows/Fonts/segoeui.ttf",
+            "DejaVuSans.ttf",
+            "Arial.ttf",
+            "arial.ttf",
+        )
     )
     for candidate in candidates:
         try:
             return ImageFont.truetype(candidate, size)
         except OSError:
             continue
-    return ImageFont.load_default()
+    return ImageFont.load_default(size=size)
 
 
 def _load_icon_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:

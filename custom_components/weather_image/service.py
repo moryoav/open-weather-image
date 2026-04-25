@@ -127,6 +127,7 @@ async def async_handle_generate(
         )
 
     payload = _build_payload(
+        hass,
         state,
         raw_forecast,
         forecast_type,
@@ -147,6 +148,7 @@ async def async_handle_generate(
 
 
 def _build_payload(
+    hass: HomeAssistant,
     state: State,
     raw_forecast: list[dict[str, Any]],
     forecast_type: str,
@@ -165,7 +167,14 @@ def _build_payload(
     if not forecast_items:
         raise ServiceValidationError("No usable forecast items were available to render.")
 
-    title = title_override or state.name or state.entity_id
+    header_title = (
+        title_override.strip()
+        if isinstance(title_override, str) and title_override.strip()
+        else None
+    )
+    location_text = _resolve_location_text(hass, state, attributes, header_title)
+    if header_title and location_text.casefold() == header_title.casefold():
+        header_title = None
     subtitle = _format_header_datetime(now_local)
 
     temperature_unit = _coalesce(attributes, "temperature_unit") or "°C"
@@ -180,7 +189,8 @@ def _build_payload(
     summary_source = prepared[0].raw if forecast_type == "daily" else selected[0].raw
 
     return WeatherImagePayload(
-        title=title,
+        header_title=header_title,
+        location_text=location_text,
         subtitle=subtitle,
         current_temperature=current_temperature,
         feels_like=feels_like,
@@ -192,6 +202,43 @@ def _build_payload(
         side_metrics=tuple(_side_metrics(attributes, summary_source)),
         forecast_items=forecast_items,
     )
+
+
+def _resolve_location_text(
+    hass: HomeAssistant,
+    state: State,
+    attributes: dict[str, Any],
+    header_title: str | None,
+) -> str:
+    city = _coalesce(attributes, "city", "location", "place", "station")
+    country = _coalesce(attributes, "country", "country_code")
+    if city and country:
+        city_text = str(city).strip()
+        country_text = str(country).strip()
+        if city_text and country_text:
+            combined = f"{city_text}, {country_text}"
+            if not header_title or combined.casefold() != header_title.casefold():
+                return combined
+
+    header_lower = header_title.casefold() if header_title else None
+    for candidate in (
+        getattr(hass.config, "location_name", None),
+        _coalesce(attributes, "location"),
+        _coalesce(attributes, "city"),
+        _coalesce(attributes, "friendly_name"),
+        state.name,
+        state.entity_id,
+    ):
+        if candidate is None:
+            continue
+        text = str(candidate).strip()
+        if not text:
+            continue
+        if header_lower and text.casefold() == header_lower:
+            continue
+        return text
+
+    return header_title or state.entity_id
 
 
 def _prepare_forecast(raw_forecast: Iterable[dict[str, Any]]) -> list[_PreparedForecast]:
