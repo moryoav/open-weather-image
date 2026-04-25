@@ -8,5 +8,6 @@
   "integration_type": "service",
   "iot_class": "calculated",
   "config_flow": true,
+  "single_config_entry": true,
   "requirements": ["Pillow>=10.0.0,<13.0.0"]
 }
