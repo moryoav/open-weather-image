@@ -1,10 +1,10 @@
 # Weather Image
 
-`weather_image` is now a Home Assistant custom integration that renders a weather PNG in the visual style of the original `open-weather-image` package.
+`weather_image` is a Home Assistant custom integration that renders a weather PNG in the visual style of the original `open-weather-image` package.
 
 It exposes a single service, `weather_image.generate`, which:
 
-- reads the current conditions from a Home Assistant weather entity such as `weather.openweathermap`
+- reads current conditions from a Home Assistant weather entity such as `weather.openweathermap`
 - fetches forecast data through `weather.get_forecasts`
 - renders a PNG using Python + Pillow and the bundled weather icon font
 - saves the result under `/config/www/...` so it is immediately available through `/local/...`
@@ -17,21 +17,22 @@ The renderer keeps the legacy layout as closely as possible:
 - large temperature block on the left
 - four forecast boxes across the bottom rail
 
-## Installation
+## HACS Installation
 
-1. Copy `custom_components/weather_image` into your Home Assistant `custom_components` directory.
-   The final destination should be:
-
-```text
-<config>/custom_components/weather_image
-```
-2. Add this to `configuration.yaml`:
-
-```yaml
-weather_image:
-```
-
+1. In HACS, add this repository as a custom repository with type `Integration`.
+2. Download `Weather Image` from HACS.
 3. Restart Home Assistant.
+4. Go to `Settings > Devices & services`.
+5. Click `Add Integration`.
+6. Search for `Weather Image` and add it.
+
+No `configuration.yaml` entry is required.
+
+## Important For Maintainers
+
+This repository now includes a root `hacs.json`, which is required for HACS branch/default-branch installs to work correctly.
+
+If you want HACS to show a real version like `1.0.0` instead of a commit SHA, publish a GitHub release after pushing your changes. HACS uses the latest GitHub release as the repository version when one exists; tags alone are not enough.
 
 ## Service
 
@@ -67,14 +68,16 @@ After the service runs, the default image is available at:
 - Daily mode renders the next four forecast days.
 - Hourly mode renders the next four upcoming forecast points.
 - The current weather panel uses the selected weather entity's live state attributes.
-- The lower-right detail area prefers sunrise/sunset values when the forecast payload includes them, and otherwise falls back to pressure and visibility.
+- The lower-right detail area prefers sunrise and sunset values when the forecast payload includes them, and otherwise falls back to pressure and visibility.
 
 ## Repository Layout
 
-- `custom_components/weather_image/__init__.py`: service registration
+- `custom_components/weather_image/__init__.py`: integration setup and service registration
+- `custom_components/weather_image/config_flow.py`: UI setup flow
 - `custom_components/weather_image/service.py`: Home Assistant data collection and normalization
 - `custom_components/weather_image/renderer.py`: Pillow renderer
 - `custom_components/weather_image/weathericons-font.ttf`: bundled icon font used for the card glyphs
+- `hacs.json`: HACS repository metadata
 
 ## License
 

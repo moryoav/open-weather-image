@@ -1,5 +1,16 @@
 {
   "title": "Weather Image",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Weather Image",
+        "description": "Install the Weather Image integration and enable the `weather_image.generate` service. No additional configuration is required here."
+      }
+    },
+    "abort": {
+      "already_configured": "Weather Image has already been added."
+    }
+  },
   "services": {
     "generate": {
       "name": "Generate weather image",
